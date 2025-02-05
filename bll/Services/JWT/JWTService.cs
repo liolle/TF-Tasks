@@ -29,11 +29,10 @@ public class JWTService  : IJWTService
 
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, user.Id.ToString()),    // User ID
-            new(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),  // Full Name
-            new(ClaimTypes.GivenName, user.FirstName),             // First Name
-            new(ClaimTypes.Surname, user.LastName),                // Last Name
-            new(ClaimTypes.Email, user.Email),                     // Email
+            new(nameof(ApplicationUser.Id), user.Id.ToString()),    
+            new(nameof(ApplicationUser.FirstName), user.FirstName),             
+            new(nameof(ApplicationUser.LastName), user.LastName),                
+            new(nameof(ApplicationUser.Email), user.Email),                     
         };
 
         // Standardized User info

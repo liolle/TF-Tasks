@@ -6,14 +6,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace apiExo.controllers;
 
 
-public class TaskController(ITaskService ts) : ControllerBase
+public class TaskController(ITaskService _ts): ControllerBase
 {
+    private ApplicationUser? _applicationUser;
 
     [HttpGet]
     [Authorize]
     public ActionResult All()
     {
-        var tasks = ts.GetAll();
+        setUser();
+        if (_applicationUser is null){
+            return BadRequest("Malformed Token");
+        }
+        var tasks = _ts.GetAll(_applicationUser.Id);
         return Ok(tasks);
     }
 
@@ -22,7 +27,11 @@ public class TaskController(ITaskService ts) : ControllerBase
     [Authorize]
     public ActionResult GetById([FromQuery] int id)
     {
-        var task = ts.GetByID(id);
+        setUser();
+        if (_applicationUser is null){
+            return BadRequest("Malformed Token");
+        }
+        var task = _ts.GetByID(id,_applicationUser.Id);
         return task != null ? Ok(task) : NotFound($"Task with ID {id} not found.");
     }
 
@@ -30,13 +39,18 @@ public class TaskController(ITaskService ts) : ControllerBase
     [Authorize]
     public ActionResult Add([FromBody] TaskModel model)
     {
+        setUser();
+        if (_applicationUser is null){
+            return BadRequest("Malformed Token");
+        }
+
         var task = new TaskEntity
         {
             Title = model.Title,
             Status = model.Status
         };
 
-        string result = ts.Add(task);
+        string result = _ts.Add(task,_applicationUser.Id);
         return Ok(result);
     }
 
@@ -44,7 +58,12 @@ public class TaskController(ITaskService ts) : ControllerBase
     [Authorize]
     public ActionResult Update([FromBody] TaskUpdate model)
     {
-        string result = ts.Update(model);
+        setUser();
+        if (_applicationUser is null){
+            return BadRequest("Malformed Token");
+        }
+
+        string result = _ts.Update(model,_applicationUser.Id);
         return Ok(result);
     }
 
@@ -52,7 +71,29 @@ public class TaskController(ITaskService ts) : ControllerBase
     [Authorize]
     public ActionResult Patch([FromBody] TaskPatch model)
     {
-        string result = ts.Patch(model);
+        setUser();
+        if (_applicationUser is null){
+            return BadRequest("Malformed Token");
+        }
+
+        string result = _ts.Patch(model,_applicationUser.Id);
         return Ok(result);
+    }
+
+    void setUser(){
+        var userId = User.FindFirst(nameof(ApplicationUser.Id))?.Value;
+        var firstName = User.FindFirst(nameof(ApplicationUser.FirstName))?.Value;
+        var lastName = User.FindFirst(nameof(ApplicationUser.LastName))?.Value;
+        var email = User.FindFirst(nameof(ApplicationUser.Email))?.Value;
+
+        if (int.TryParse(userId, out int id) && firstName is not null && lastName is not null && email is not null)
+        {
+            _applicationUser = new(){
+                Id = id,
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email
+            };
+        }
     }
 }

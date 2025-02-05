@@ -12,11 +12,49 @@ public class TaskAPIService(IHttpClientFactory clientFactory) : ITaskService
         PropertyNameCaseInsensitive = true
     };
 
-    public string Add(TaskEntity task)
+    public string Add(TaskEntity task,int userId)
     {
         throw new NotImplementedException();
     }
 
+
+    public string Delete(int id,int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public ICollection<TaskEntity> GetAll(int userId)
+    {
+        
+        throw new NotImplementedException();
+    }
+
+
+    public TaskEntity? GetByID(int id,int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public TaskEntity? GetByID(int id)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public string Patch(TaskPatch task,int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    public string Update(TaskUpdate task,int userId)
+    {
+        throw new NotImplementedException();
+    }
+
+
+    // Async
     public async Task<string> AddAsync(TaskEntity task)
     {
 
@@ -36,23 +74,10 @@ public class TaskAPIService(IHttpClientFactory clientFactory) : ITaskService
         Console.WriteLine($"{jsonResponse}\n");
         return jsonResponse;
     }
-
-    public string Delete(int id)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<string> DeleteAsync(int id)
     {
         throw new NotImplementedException();
     }
-
-    public ICollection<TaskEntity> GetAll()
-    {
-        
-        throw new NotImplementedException();
-    }
-
     public async Task<ICollection<TaskEntity>> GetAllAsync()
     {
         using HttpClient client = clientFactory.CreateClient("MyApiClient");
@@ -64,18 +89,7 @@ public class TaskAPIService(IHttpClientFactory clientFactory) : ITaskService
 
         return tasks ?? new List<TaskEntity>();
     }
-
-    public TaskEntity? GetByID(int id)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<TaskEntity?> GetByIDAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string Patch(TaskPatch task)
     {
         throw new NotImplementedException();
     }
@@ -85,18 +99,10 @@ public class TaskAPIService(IHttpClientFactory clientFactory) : ITaskService
         throw new NotImplementedException();
     }
 
-    public string Update(TaskUpdate task)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task<string> UpdateAsync(TaskUpdate task)
     {
         throw new NotImplementedException();
     }
 
-    string ITaskService.Add(TaskEntity task)
-    {
-        throw new NotImplementedException();
-    }
+
 }

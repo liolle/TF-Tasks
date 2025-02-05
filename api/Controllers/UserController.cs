@@ -41,6 +41,14 @@ public class UserController(IUserService userService,IConfiguration configuratio
     }
 
     public IActionResult Logout(){
-        return Ok();
+        try
+        {
+            string? token_name = configuration["AUTH_TOKEN_NAME"] ?? throw new Exception("Missing AUTH_TOKEN_NAME Configuration");
+            Response.Cookies.Delete(token_name);
+        }
+        catch (Exception )
+        {
+        }
+        return Ok(new{message="Logged in successfully!"});
     }
 }

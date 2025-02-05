@@ -25,9 +25,9 @@ public class UserController(IUserService userService,IConfiguration configuratio
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true, // 🔒 Prevents JavaScript access (XSS protection)
-                Secure = true,   // 🔒 Send only over HTTPS (set to false in development)
+                Secure = true,   // 🔒 Send only over HTTPS
                 SameSite = SameSiteMode.Strict, // Prevent CSRF attacks
-                Expires = DateTime.UtcNow.AddHours(1) // Set cookie expiration same as JWT expiration
+                Expires = DateTime.UtcNow.AddHours(1) 
             };
 
             Response.Cookies.Append(token_name, jwtToken, cookieOptions);

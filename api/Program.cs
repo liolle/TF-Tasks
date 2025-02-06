@@ -1,6 +1,6 @@
 using System.Text;
 using apiExo.dal.database;
-using apiExo.bll.services;
+using apiExo.domain.services;
 using DotNetEnv;
 using apiExo.bll.entity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;

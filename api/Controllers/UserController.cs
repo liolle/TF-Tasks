@@ -1,14 +1,15 @@
-using apiExo.bll.entity;
-using apiExo.bll.services;
+using apiExo.domain.Commands;
+using apiExo.domain.Queries;
+using apiExo.domain.services;
 using Microsoft.AspNetCore.Mvc;
 
 public class UserController(IUserService userService,IConfiguration configuration) : ControllerBase
 {
-    public IActionResult Register([FromBody] RegisterModel model){
+    public IActionResult Register([FromBody] RegisterCommand command){
 
         try
         {
-            userService.Register(model);
+            userService.Execute(command);
             return Ok(new{message=""});
         }
         catch (Exception e)
@@ -17,11 +18,11 @@ public class UserController(IUserService userService,IConfiguration configuratio
         }
     }
 
-    public IActionResult Login([FromBody] CredentialModel model){
+    public IActionResult Login([FromBody] LoginQuery query){
         try
         {
             string? token_name = configuration["AUTH_TOKEN_NAME"] ?? throw new Exception("Missing AUTH_TOKEN_NAME Configuration");
-            string jwtToken = userService.Login(model);
+            string jwtToken = userService.Execute(query);
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true, // 🔒 Prevents JavaScript access (XSS protection)

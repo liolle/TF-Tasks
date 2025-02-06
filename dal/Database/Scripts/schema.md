@@ -44,9 +44,9 @@ ALTER TABLE Tasks
 ADD TaskId INT NOT NULL 
 CONSTRAINT DF_Id DEFAULT 0;
 
-ALTER TABLE Tasks DROP CONSTRAINT DEF_Id;
+ALTER TABLE Tasks DROP CONSTRAINT DF_Id;
 
-/*Since already have element in the table that don't have a user*/
+/*Since we already have element in the table that don't have a user*/
 -- Add a default user and give him all those tasks
 INSERT INTO Users (FirstName,LastName,Email,Password)
 VALUES ('Jhon','Doe','Jhon@test.com','Defualt')

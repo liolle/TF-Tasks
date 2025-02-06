@@ -81,10 +81,10 @@ public class TaskController(ITaskService _ts): ControllerBase
     }
 
     void setUser(){
-        var userId = User.FindFirst(nameof(ApplicationUser.Id))?.Value;
-        var firstName = User.FindFirst(nameof(ApplicationUser.FirstName))?.Value;
-        var lastName = User.FindFirst(nameof(ApplicationUser.LastName))?.Value;
-        var email = User.FindFirst(nameof(ApplicationUser.Email))?.Value;
+        string? userId = User.FindFirst(nameof(ApplicationUser.Id))?.Value;
+        string? firstName = User.FindFirst(nameof(ApplicationUser.FirstName))?.Value;
+        string? lastName = User.FindFirst(nameof(ApplicationUser.LastName))?.Value;
+        string? email = User.FindFirst(nameof(ApplicationUser.Email))?.Value;
 
         if (int.TryParse(userId, out int id) && firstName is not null && lastName is not null && email is not null)
         {

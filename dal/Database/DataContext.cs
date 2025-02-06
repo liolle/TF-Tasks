@@ -10,7 +10,7 @@ public class DataContext : IDataContext
 
     public DataContext(IConfiguration configuration)
     {
-        _connectionString = configuration.GetConnectionString("todo")!;
+        _connectionString = configuration["DB_CONNECTION_STRING"]!;
     }
 
     public SqlConnection CreateConnection()

@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 
 namespace apiExo.bll.services;
 
-public class TaskService (IDataContext context) : ITaskService
+public partial class  TaskService (IDataContext context) : ITaskService
 {
     public string Add(TaskEntity task,int userId)
     {
@@ -100,37 +100,4 @@ public class TaskService (IDataContext context) : ITaskService
         int rowsAffected = cmd.ExecuteNonQuery();
         return rowsAffected > 0 ? "Task updated successfully" : "Task not found or update failed";
     }
-
-
-    //async
-    public Task<string> AddAsync(TaskEntity task)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<string> DeleteAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<ICollection<TaskEntity>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<TaskEntity?> GetByIDAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<string> PatchAsync(TaskPatch task)
-    {
-        throw new NotImplementedException();
-    }
-
-    public  Task<string> UpdateAsync(TaskUpdate task)
-    {
-        throw new NotImplementedException();
-    }
-
 }

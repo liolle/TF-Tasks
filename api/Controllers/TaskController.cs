@@ -1,4 +1,5 @@
 using apiExo.api.Models;
+using apiExo.CQS;
 using apiExo.domain.Commands;
 using apiExo.domain.entity;
 using apiExo.domain.Queries;
@@ -16,9 +17,9 @@ public class TaskController(ITaskService _ts): ControllerBase
     [Authorize]
     public ActionResult All()
     {
-        setUser();
+        SetUser();
         if (_userId  == 0){
-            return BadRequest("Malformed Token");
+            return BadRequest(ICommandResult.Failure("Malformed Token"));
         }
         AllTaskQuery query = new()
         {
@@ -34,9 +35,9 @@ public class TaskController(ITaskService _ts): ControllerBase
     [Authorize]
     public ActionResult GetById([FromQuery] int id )
     {
-        setUser();
+        SetUser();
         if (_userId  == 0){
-            return BadRequest("Malformed Token");
+            return BadRequest(ICommandResult.Failure("Malformed Token"));
         }
 
         TaskByIdQuery query = new()
@@ -53,9 +54,9 @@ public class TaskController(ITaskService _ts): ControllerBase
     [Authorize]
     public ActionResult Add([FromBody] AddTaskModel model)
     {
-        setUser();
+        SetUser();
         if (_userId  == 0){
-            return BadRequest("Malformed Token");
+            return BadRequest(ICommandResult.Failure("Malformed Token"));
         }
 
         AddTaskCommand command = new(
@@ -64,17 +65,16 @@ public class TaskController(ITaskService _ts): ControllerBase
             _userId
         );
 
-        string result = _ts.Execute(command);
-        return Ok(result);
+        return Ok(_ts.Execute(command));
     }
 
     [HttpPut]
     [Authorize]
     public ActionResult Update([FromBody] UpdateTaskModel model)
     {
-        setUser();
+        SetUser();
         if (_userId  == 0){
-            return BadRequest("Malformed Token");
+            return BadRequest(ICommandResult.Failure("Malformed Token"));
         }
 
         UpdateTaskCommand command = new(
@@ -84,8 +84,7 @@ public class TaskController(ITaskService _ts): ControllerBase
             model.Id
         );
 
-        string result = _ts.Execute(command);
-        return Ok(result);
+        return Ok(_ts.Execute(command));
     }
 
 
@@ -93,9 +92,9 @@ public class TaskController(ITaskService _ts): ControllerBase
     [Authorize]
     public ActionResult Patch([FromBody] PatchTaskModel model)
     {
-        setUser();
+        SetUser();
         if (_userId  == 0){
-            return BadRequest("Malformed Token");
+            return BadRequest(ICommandResult.Failure("Malformed Token"));
         }
 
         PatchTaskCommand command = new(
@@ -104,12 +103,11 @@ public class TaskController(ITaskService _ts): ControllerBase
             _userId
         );
 
-        string result = _ts.Execute(command);
-        return Ok(result);
+        return Ok(_ts.Execute(command));
     }
 
 
-    void setUser(){
+    void SetUser(){
         string? userId = User.FindFirst(nameof(ApplicationUser.Id))?.Value;
         int.TryParse(userId, out _userId);
     }

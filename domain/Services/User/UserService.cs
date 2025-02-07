@@ -1,3 +1,4 @@
+using apiExo.CQS;
 using apiExo.dal.database;
 using apiExo.domain.Commands;
 using apiExo.domain.entity;
@@ -8,61 +9,87 @@ namespace apiExo.domain.services;
 
 public class UserService(IDataContext context, IHashService hashService, IJWTService jwt) : IUserService
 {
-    public string Execute(RegisterCommand command)
+    public CommandResult Execute(RegisterCommand command)
     {
-        using SqlConnection conn = context.CreateConnection();
-        string hashedPassword = hashService.HashPassword(command.Email,command.Password);
+        try
+        {
+            using SqlConnection conn = context.CreateConnection();
+            string hashedPassword = hashService.HashPassword(command.Email,command.Password);
 
-        string query = @"
+            string query = @"
                 INSERT INTO Users (FirstName, LastName, Email, Password) 
                 VALUES (@FirstName, @LastName, @Email, @Password);";
 
-        using SqlCommand cmd = new SqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@FirstName", command.FirstName);
-        cmd.Parameters.AddWithValue("@LastName", command.LastName);
-        cmd.Parameters.AddWithValue("@Email", command.Email);
-        cmd.Parameters.AddWithValue("@Password", hashedPassword); 
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@FirstName", command.FirstName);
+            cmd.Parameters.AddWithValue("@LastName", command.LastName);
+            cmd.Parameters.AddWithValue("@Email", command.Email);
+            cmd.Parameters.AddWithValue("@Password", hashedPassword); 
 
-        conn.Open();
-        int result = cmd.ExecuteNonQuery(); 
-        return result > 0 ? $"User inserted succeeded" : "User insertion failed.";
-       
-    }
-
-    public string Execute(LoginQuery query)
-    {
-
-        ApplicationUser user = Execute(new UserFromEmailQuery(query.Email)) ?? throw new Exception("Unknown user");
-
-
-        if (!hashService.VerifyPassword(query.Email,user.Password,query.Password)){
-           throw new Exception("Invalid credentials");
+            conn.Open();
+            int result = cmd.ExecuteNonQuery(); 
+            if (result != 1) {
+                return ICommandResult.Failure("User insertion failed.");
+            }
+            return ICommandResult.Success();
         }
-
-        return jwt.generate(user);
-    }
-
-    public ApplicationUser? Execute(UserFromEmailQuery query)
-    {
-        using SqlConnection conn = context.CreateConnection();
-        string sql_query = "SELECT * FROM Users WHERE Email = @Email";
-        using SqlCommand cmd = new(sql_query, conn);
-        cmd.Parameters.AddWithValue("@Email", query.Email);
-
-
-        conn.Open();
-        using SqlDataReader reader = cmd.ExecuteReader();
-        if (reader.Read())
+        catch (Exception e)
         {
-            return new ApplicationUser(
-                (int)reader[nameof(ApplicationUser.Id)],
-                (string)reader[nameof(ApplicationUser.FirstName)],
-                (string)reader[nameof(ApplicationUser.LastName)],
-                (string)reader[nameof(ApplicationUser.Email)],
-                (string)reader[nameof(ApplicationUser.Password)],
-                (DateTime)reader[nameof(ApplicationUser.CreatedAt)]
-            );
+            return ICommandResult.Failure("",e);
         }
-        return null;
+    }
+
+    public QueryResult<string> Execute(LoginQuery query)
+    {
+        try
+        {
+            QueryResult<ApplicationUser?> qr = Execute(new UserFromEmailQuery(query.Email));
+            if (qr.IsFailure || qr.Result is null ){
+                return IQueryResult<string>.Failure(qr.ErrorMessage!,qr.Exception);
+            }
+
+            if (!hashService.VerifyPassword(query.Email,qr.Result.Password,query.Password)){
+                return IQueryResult<string>.Failure("Invalid credential combination");
+            }
+
+            return IQueryResult<string>.Success(jwt.generate(qr.Result));
+        }
+        catch (Exception e)
+        {
+            return IQueryResult<string>.Failure("",e);
+        }
+    }
+
+    public QueryResult<ApplicationUser?>  Execute(UserFromEmailQuery query)
+    {
+        try
+        {
+            using SqlConnection conn = context.CreateConnection();
+            string sql_query = "SELECT * FROM Users WHERE Email = @Email";
+            using SqlCommand cmd = new(sql_query, conn);
+            cmd.Parameters.AddWithValue("@Email", query.Email);
+
+            conn.Open();
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                ApplicationUser u = new(
+
+                    (int)reader[nameof(ApplicationUser.Id)],
+                    (string)reader[nameof(ApplicationUser.FirstName)],
+                    (string)reader[nameof(ApplicationUser.LastName)],
+                    (string)reader[nameof(ApplicationUser.Email)],
+                    (string)reader[nameof(ApplicationUser.Password)],
+                    (DateTime)reader[nameof(ApplicationUser.CreatedAt)]
+                );
+                return IQueryResult<ApplicationUser?>.Success(u);
+            }
+            return IQueryResult<ApplicationUser?>.Failure($"Could not find User with email {query.Email}");
+        }
+        catch (Exception e)
+        {
+            return IQueryResult<ApplicationUser?>.Failure("",e);
+        }
+
     }
 }

@@ -6,8 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dal", "dal\dal.csproj", "{1
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "api", "api\api.csproj", "{CBFA08EA-AECE-205F-7B85-326FD0B81BAD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bll", "bll\bll.csproj", "{5875EBB1-01BE-2D17-3613-D0BAD09CBB40}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "domain", "domain\domain.csproj", "{EDCB0599-AD33-4BBD-903E-1DC4B80DD76A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tools_CQS", "tools_CQS\tools_CQS.csproj", "{D84F824F-A6C4-4D22-A958-A11A841273B4}"

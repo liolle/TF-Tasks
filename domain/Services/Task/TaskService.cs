@@ -1,3 +1,4 @@
+using apiExo.CQS;
 using apiExo.dal.database;
 using apiExo.domain.Commands;
 using apiExo.domain.entity;
@@ -6,14 +7,15 @@ using Microsoft.Data.SqlClient;
 
 namespace apiExo.domain.services;
 
-public partial class TaskService(IDataContext context) : ITaskService
+public class TaskService(IDataContext context) : ITaskService
 {
-    public ICollection<TaskEntity> Execute(AllTaskQuery query)
+    public QueryResult<ICollection<TaskEntity>> Execute(AllTaskQuery query)
     {
         var tasks = new List<TaskEntity>();
 
-        using (SqlConnection conn = context.CreateConnection())
+        try
         {
+            using SqlConnection conn = context.CreateConnection();
             string sql_query = "SELECT Id, Title, Status, CreatedAt FROM Tasks WHERE UserId = @UserId";
             using SqlCommand cmd = new SqlCommand(sql_query, conn);
             cmd.Parameters.AddWithValue("@UserId", query.Id);
@@ -27,75 +29,113 @@ public partial class TaskService(IDataContext context) : ITaskService
                     (string)reader[nameof(TaskEntity.Status)],
                     (DateTime)reader[nameof(TaskEntity.CreatedAt)]
                 ));
-          
+
             }
         }
-        return tasks;
-    }
-
-    public TaskEntity? Execute(TaskByIdQuery query)
-    {
-        using SqlConnection conn = context.CreateConnection();
-        string sql_query = "SELECT Id, Title, Status, CreatedAt FROM Tasks WHERE Id = @Id AND UserId = @UserId";
-        using SqlCommand cmd = new SqlCommand(sql_query, conn);
-        cmd.Parameters.AddWithValue("@Id", query.TaskId);
-        cmd.Parameters.AddWithValue("@UserId", query.UserId);
-
-        conn.Open();
-        using SqlDataReader reader = cmd.ExecuteReader();
-        if (reader.Read())
+        catch (Exception e)
         {
-            return new TaskEntity(
-                (int)reader[nameof(TaskEntity.Id)],
-                (string)reader[nameof(TaskEntity.Title)],
-                (string)reader[nameof(TaskEntity.Status)],
-                (DateTime)reader[nameof(TaskEntity.CreatedAt)]
-            );
+            return IQueryResult<ICollection<TaskEntity>>.Failure(e.Message,e);
         }
-        return null;
+
+        return IQueryResult<ICollection<TaskEntity>>.Success(tasks);
     }
 
-    public string Execute(AddTaskCommand command)
+    public QueryResult<TaskEntity?> Execute(TaskByIdQuery query)
     {
-        using SqlConnection conn = context.CreateConnection();
-        string query = "INSERT INTO Tasks (Title, Status, UserId) VALUES (@Title, @Status,@UserId)";
-        using SqlCommand cmd = new SqlCommand(query, conn);
+        try
+        {
+            using SqlConnection conn = context.CreateConnection();
+            string sql_query = "SELECT Id, Title, Status, CreatedAt FROM Tasks WHERE Id = @Id AND UserId = @UserId";
+            using SqlCommand cmd = new SqlCommand(sql_query, conn);
+            cmd.Parameters.AddWithValue("@Id", query.TaskId);
+            cmd.Parameters.AddWithValue("@UserId", query.UserId);
 
-        cmd.Parameters.AddWithValue("@Title", command.Title);
-        cmd.Parameters.AddWithValue("@Status", command.Status);
-        cmd.Parameters.AddWithValue("@UserId", command.UserId);
+            conn.Open();
+            using SqlDataReader reader = cmd.ExecuteReader();
+            if (reader.Read())
+            {
+                TaskEntity task = new(
+                    (int)reader[nameof(TaskEntity.Id)],
+                    (string)reader[nameof(TaskEntity.Title)],
+                    (string)reader[nameof(TaskEntity.Status)],
+                    (DateTime)reader[nameof(TaskEntity.CreatedAt)]
 
-        conn.Open();
-        int rowsAffected = cmd.ExecuteNonQuery();
-        return rowsAffected > 0 ? "Task added successfully" : "Failed to add task";
+                );
+                return IQueryResult<TaskEntity?>.Success(task);
+            }
+            return IQueryResult<TaskEntity?>.Failure("Could not find Corresponding task");
+        }
+        catch (Exception e) 
+        {
+            return IQueryResult<TaskEntity?>.Failure("",e);
+        }
     }
 
-    public string Execute(UpdateTaskCommand command)
+    public CommandResult Execute(AddTaskCommand command)
     {
-        using SqlConnection conn = context.CreateConnection();
-        string query = "UPDATE Tasks SET Status = @Status,Title = @Title WHERE Id = @Id AND UserId = @UserId";
-        using SqlCommand cmd = new SqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@Status", command.Status);
-        cmd.Parameters.AddWithValue("@Title", command.Title);
-        cmd.Parameters.AddWithValue("@Id", command.TaskId);
-        cmd.Parameters.AddWithValue("@UserId", command.UserId);
+        try
+        {
+            using SqlConnection conn = context.CreateConnection();
+            string query = "INSERT INTO Tasks (Title, Status, UserId) VALUES (@Title, @Status,@UserId)";
+            using SqlCommand cmd = new SqlCommand(query, conn);
 
-        conn.Open();
-        int rowsAffected = cmd.ExecuteNonQuery();
-        return rowsAffected > 0 ? "Task updated successfully" : "Task not found or update failed";
+            cmd.Parameters.AddWithValue("@Title", command.Title);
+            cmd.Parameters.AddWithValue("@Status", command.Status);
+            cmd.Parameters.AddWithValue("@UserId", command.UserId);
+
+            conn.Open();
+            int rowsAffected = cmd.ExecuteNonQuery();
+            if (rowsAffected != 1) {return ICommandResult.Failure("Failed to add task");}
+            return ICommandResult.Success();
+        }
+        catch (Exception e)
+        {
+            return ICommandResult.Failure("",e);
+        }
     }
 
-    public string Execute(PatchTaskCommand command)
+    public CommandResult Execute(UpdateTaskCommand command)
     {
-        using SqlConnection conn = context.CreateConnection();
-        string query = "UPDATE Tasks SET Status = @Status WHERE Id = @Id AND UserId = @UserId";
-        using SqlCommand cmd = new SqlCommand(query, conn);
-        cmd.Parameters.AddWithValue("@Status", command.Status);
-        cmd.Parameters.AddWithValue("@Id", command.TaskId);
-        cmd.Parameters.AddWithValue("@UserId", command.UserId);
+        try
+        {
+            using SqlConnection conn = context.CreateConnection();
+            string query = "UPDATE Tasks SET Status = @Status,Title = @Title WHERE Id = @Id AND UserId = @UserId";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Status", command.Status);
+            cmd.Parameters.AddWithValue("@Title", command.Title);
+            cmd.Parameters.AddWithValue("@Id", command.TaskId);
+            cmd.Parameters.AddWithValue("@UserId", command.UserId);
 
-        conn.Open();
-        int rowsAffected = cmd.ExecuteNonQuery();
-        return rowsAffected > 0 ? "Task patched successfully" : "Task not found or patch failed";
+            conn.Open();
+            int rowsAffected = cmd.ExecuteNonQuery();
+            if (rowsAffected != 1) {return ICommandResult.Failure("Task not found or update failed");}
+            return ICommandResult.Success();
+        }
+        catch (Exception e)
+        {
+            return ICommandResult.Failure("",e);
+        }
+    }
+
+    public CommandResult Execute(PatchTaskCommand command)
+    {
+        try
+        {
+            using SqlConnection conn = context.CreateConnection();
+            string query = "UPDATE Tasks SET Status = @Status WHERE Id = @Id AND UserId = @UserId";
+            using SqlCommand cmd = new SqlCommand(query, conn);
+            cmd.Parameters.AddWithValue("@Status", command.Status);
+            cmd.Parameters.AddWithValue("@Id", command.TaskId);
+            cmd.Parameters.AddWithValue("@UserId", command.UserId);
+
+            conn.Open();
+            int rowsAffected = cmd.ExecuteNonQuery();
+            if (rowsAffected != 1) {return ICommandResult.Failure("Task not found or patch failed");}
+            return ICommandResult.Success();
+        }
+        catch (Exception e)
+        {
+            return ICommandResult.Failure("",e);
+        }
     }
 }

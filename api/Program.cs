@@ -88,6 +88,6 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-RouteConfig.RegisterRoutes(app);
+app.MapControllers();
 
 app.Run();

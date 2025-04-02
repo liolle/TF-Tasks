@@ -7,6 +7,6 @@ public interface IQueryResult<TResult> : IResult
     }
 
     static QueryResult<TResult> Failure(string errorMessage, Exception? exception = null){
-        return new QueryResult<TResult>(true,default!,errorMessage,exception);
+        return new QueryResult<TResult>(false,default!,errorMessage,exception);
     }
 }

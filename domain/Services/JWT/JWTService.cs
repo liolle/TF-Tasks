@@ -24,6 +24,7 @@ public class JWTService  : IJWTService
         _issuer = jwt_issuer;
         _audience = jwt_audience;
     }
+
     public string generate(ApplicationUser user)
     {
 
@@ -39,9 +40,6 @@ public class JWTService  : IJWTService
         ClaimsIdentity identity = new(claims,CookieAuthenticationDefaults.AuthenticationScheme);
         ClaimsPrincipal principal = new(identity);
 
-
-
-
         // Token signing info
         SymmetricSecurityKey key = new(Encoding.UTF8.GetBytes(_secretKey));
         SigningCredentials credentials = new(key, SecurityAlgorithms.HmacSha256Signature);
@@ -53,6 +51,7 @@ public class JWTService  : IJWTService
             expires: DateTime.UtcNow.AddHours(1),
             signingCredentials: credentials
         );
+
         return new JwtSecurityTokenHandler().WriteToken(token); 
     }
 }
